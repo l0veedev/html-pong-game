@@ -1,9 +1,10 @@
 # HTML Ping Pong Game
 
-A lightweight, high-performance open-source Pong game built with pure HTML5 Canvas and JavaScript. Written in a single file with zero external dependencies or assets.
+A lightweight, high-performance open-source Pong game built with pure HTML5 Canvas and JavaScript. Optimized for both desktop and mobile devices with smooth touch controls. Written in a single file with zero external dependencies or assets.
 
 ### How to Play
-- Use the **Arrow Keys** or **W, S** to control the paddle (or touch/tap buttons on mobile devices).
+- **Desktop:** Use the **Arrow Keys** or **W, S** to control the paddle.
+- **Mobile:** Touch and drag anywhere on the game canvas to smoothly move your paddle.
 - Defend your side and bounce the ball back to score points against the AI.
 - The ball speed increases slightly with each hit.
 
@@ -19,9 +20,9 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HTML Ping Pong Game — Play Online | l0veedev</title>
-    <meta name="description" content="A lightweight, high-performance open-source Pong game built with pure HTML5 Canvas and JavaScript. Play online against AI, mobile-friendly with touch controls!">
+    <meta name="description" content="A lightweight, high-performance open-source Pong game built with pure HTML5 Canvas and JavaScript. Play online against AI, mobile-friendly with smooth touch controls!">
     <meta name="keywords" content="html pong game, javascript ping pong, retro arcade, indie pet project, l0veedev">
     <meta name="author" content="l0veedev">
     <style>
@@ -32,12 +33,15 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
             box-sizing: border-box;
             outline: none;
             color: #fff;
             font-family: sans-serif;
             user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
         }
         h1 {
             margin: 0 0 15px 0;
@@ -52,29 +56,10 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
             cursor: pointer;
             margin-bottom: 20px;
             touch-action: none;
-        }
-        .mobile-controls {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
             width: 100%;
             max-width: 600px;
-            justify-content: center;
-        }
-        .control-btn {
-            flex: 1;
-            background: #1a1a1a;
-            color: #aaa;
-            border: 1px solid #333;
-            padding: 14px 0;
-            font-size: 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            outline: none;
-        }
-        .control-btn:active {
-            background: #2a2a2a;
-            color: #fff;
+            height: auto;
+            aspect-ratio: 600 / 400;
         }
         .comments-container {
             width: 100%;
@@ -85,11 +70,6 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
 <body>
     <h1>PONG GAME</h1>
     <canvas id="board" width="600" height="400"></canvas>
-
-    <div class="mobile-controls">
-        <button class="control-btn" id="btnUp">▲</button>
-        <button class="control-btn" id="btnDown">▼</button>
-    </div>
 
     <div class="comments-container">
         <script src="[https://giscus.app/client.js](https://giscus.app/client.js)"
@@ -120,7 +100,6 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
         const keys = {};
 
         window.addEventListener('keydown', e => {
-            if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
             if (['ArrowUp', 'ArrowDown', 'KeyW', 'KeyS'].includes(e.code)) {
                 keys[e.code] = true;
                 e.preventDefault();
@@ -131,26 +110,16 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
             if (keys[e.code]) keys[e.code] = false;
         });
 
-        const setupBtn = (id, code) => {
-            const btn = document.getElementById(id);
-            const press = e => { keys[code] = true; e.preventDefault(); };
-            const release = e => { keys[code] = false; e.preventDefault(); };
-            btn.addEventListener('touchstart', press, { passive: false });
-            btn.addEventListener('touchend', release, { passive: false });
-            btn.addEventListener('mousedown', press);
-            btn.addEventListener('mouseup', release);
-            btn.addEventListener('mouseleave', release);
-        };
-
-        setupBtn('btnUp', 'KeyW');
-        setupBtn('btnDown', 'KeyS');
-
-        canvas.addEventListener('touchmove', e => {
+        const handleTouch = (e) => {
             const rect = canvas.getBoundingClientRect();
-            const touchY = e.touches[0].clientY - rect.top;
+            const scaleY = canvas.height / rect.height;
+            const touchY = (e.touches[0].clientY - rect.top) * scaleY;
             player.y = Math.max(0, Math.min(canvas.height - player.height, touchY - player.height / 2));
             e.preventDefault();
-        }, { passive: false });
+        };
+
+        canvas.addEventListener('touchstart', handleTouch, { passive: false });
+        canvas.addEventListener('touchmove', handleTouch, { passive: false });
 
         function resetBall(winner) {
             ball.x = canvas.width / 2;
@@ -169,10 +138,8 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
         const fpsInterval = 1000 / 60;
 
         function update() {
-            if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
-
-            if ((keys['ArrowUp'] || keys['KeyW']) && player.y > 0) player.y -= 5;
-            if ((keys['ArrowDown'] || keys['KeyS']) && player.y + player.height < canvas.height) player.y += 5;
+            if ((keys['ArrowUp'] || keys['KeyW']) && player.y > 0) player.y -= 6;
+            if ((keys['ArrowDown'] || keys['KeyS']) && player.y + player.height < canvas.height) player.y += 6;
 
             let aiCenter = ai.y + ai.height / 2;
             if (aiCenter < ball.y - 10) ai.y += ai.speed;
@@ -248,6 +215,7 @@ You can play the game instantly in your browser via [GitHub Pages](https://l0vee
 
         window.focus();
         window.addEventListener('click', () => window.focus());
+        window.addEventListener('touchstart', () => window.focus());
         requestAnimationFrame(loop);
     </script>
 </body>
